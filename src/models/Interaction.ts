@@ -3,10 +3,11 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IInteraction extends Document {
   userId: string;
   contentId: string;
-  type: 'view' | 'like' | 'share' | 'comment' | 'save';
+  type: 'view' | 'like' | 'share' | 'comment' | 'save' | 'rating';
   timestamp: Date;
   duration?: number;
   comment?: string;
+  rating?: number;
 }
 
 const InteractionSchema: Schema = new Schema({
@@ -23,7 +24,7 @@ const InteractionSchema: Schema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: ['view', 'like', 'share', 'comment', 'save']
+    enum: ['view', 'like', 'share', 'comment', 'save', 'rating']
   },
   timestamp: {
     type: Date,
@@ -40,6 +41,14 @@ const InteractionSchema: Schema = new Schema({
     type: String,
     required: function(this: IInteraction) {
       return this.type === 'comment';
+    }
+  },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    required: function(this: IInteraction) {
+      return this.type === 'rating';
     }
   }
 });

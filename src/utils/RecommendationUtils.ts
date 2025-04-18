@@ -42,7 +42,8 @@ export const calculateContentScore = (
     'like': 3,
     'share': 4,
     'comment': 3.5,
-    'save': 4.5
+    'save': 4.5,
+    'rating': 3 // Base weight for ratings, will be multiplied by the actual rating value
   };
   
   // Process user interactions to build preference profile
@@ -50,7 +51,12 @@ export const calculateContentScore = (
     if (!interaction.contentData) return;
     
     // Get weight for this interaction type
-    const weight = interactionTypeWeights[interaction.type as keyof typeof interactionTypeWeights] || 1;
+    let weight = interactionTypeWeights[interaction.type as keyof typeof interactionTypeWeights] || 1;
+    
+    // For ratings, multiply weight by the actual rating value
+    if (interaction.type === 'rating' && interaction.rating) {
+      weight = weight * (interaction.rating / 3); // Normalize so 3-star is neutral
+    }
     
     // Add all tags from this content to our set of interaction tags
     interaction.contentData.tags.forEach(tag => interactionTags.add(tag));

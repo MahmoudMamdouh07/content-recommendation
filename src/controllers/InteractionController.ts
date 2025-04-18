@@ -3,7 +3,7 @@ import { InteractionService } from '../services';
 import { ApiResponse } from '../utils/apiResponse';
 
 // Define the possible interaction types
-type InteractionType = 'view' | 'like' | 'share' | 'comment' | 'save';
+type InteractionType = 'view' | 'like' | 'share' | 'comment' | 'save' | 'rating';
 
 // Define the expected interaction data structure
 interface InteractionData {
@@ -12,13 +12,14 @@ interface InteractionData {
   type: InteractionType;
   duration?: number;
   comment?: string;
+  rating?: number;
 }
 
 class InteractionController {
   /**
    * Record a user interaction with content
    */
-  async recordInteraction(req: Request, res: Response): Promise<void> {
+  async recordInteraction(req: Request, res: Response): Promise<void> {    
     try {
       // Get userId from authenticated user instead of request body
       const userId = req.user?.id;
@@ -30,7 +31,7 @@ class InteractionController {
         return;
       }
       
-      const { contentId, type, duration, comment } = req.body;
+      const { contentId, type, duration, comment, rating } = req.body;
       
       // Record the interaction
       const interactionData: InteractionData = {
@@ -38,7 +39,8 @@ class InteractionController {
         contentId,
         type: type as InteractionType,
         duration,
-        comment
+        comment,
+        rating
       };
       
       const interaction = await InteractionService.recordInteraction(interactionData);
@@ -87,6 +89,40 @@ class InteractionController {
       const statusCode = error.message.includes('not found') ? 404 : 500;
       res.status(statusCode).json(
         new ApiResponse(null, error.message || 'An error occurred while getting user interactions', 'failure')
+      );
+    }
+  }
+
+  /**
+   * Get average rating for content
+   */
+  async getContentRating(req: Request, res: Response): Promise<void> {
+    try {
+      const contentId = req.params.contentId;
+      
+      const averageRating = await InteractionService.getContentAverageRating(contentId);
+      
+      if (averageRating === null) {
+        res.status(200).json(
+          new ApiResponse({ rating: null, ratingCount: 0 }, 'Content has no ratings yet')
+        );
+        return;
+      }
+      
+      // Get all rating interactions to count them
+      const ratingInteractions = await InteractionService.getContentInteractions(contentId, 'rating');
+      
+      res.status(200).json(
+        new ApiResponse({
+          rating: averageRating,
+          ratingCount: ratingInteractions.length
+        }, 'Content rating retrieved successfully')
+      );
+    } catch (error: any) {
+      console.error('Error in getContentRating controller:', error);
+      const statusCode = error.message.includes('not found') ? 404 : 500;
+      res.status(statusCode).json(
+        new ApiResponse(null, error.message || 'An error occurred while getting content rating', 'failure')
       );
     }
   }

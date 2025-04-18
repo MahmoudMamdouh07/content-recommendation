@@ -4,7 +4,8 @@ import { validate } from '../utils/validationMiddleware';
 import { 
   recordInteractionSchema, 
   userIdParamSchema, 
-  interactionTypeQuerySchema 
+  interactionTypeQuerySchema,
+  contentIdParamSchema
 } from '../utils/validationSchemas';
 import { authenticate } from '../middleware/authMiddleware';
 
@@ -35,6 +36,17 @@ router.get(
     query: interactionTypeQuerySchema
   }) as any,
   InteractionController.getUserInteractions as any
+);
+
+/**
+ * @route   GET /api/interactions/content/:contentId/rating
+ * @desc    Get average rating for content
+ * @access  Public
+ */
+router.get(
+  '/content/:contentId/rating',
+  validate({ params: contentIdParamSchema }) as any,
+  InteractionController.getContentRating as any
 );
 
 export default router; 

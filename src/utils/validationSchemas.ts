@@ -15,7 +15,7 @@ export const signinSchema = Joi.object({
 // Interaction validation schemas
 export const recordInteractionSchema = Joi.object({
   contentId: Joi.string().required(),
-  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save').required(),
+  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save', 'rating').required(),
   duration: Joi.number().when('type', {
     is: 'view',
     then: Joi.number().required(),
@@ -25,12 +25,17 @@ export const recordInteractionSchema = Joi.object({
     is: 'comment',
     then: Joi.string().required(),
     otherwise: Joi.optional()
+  }),
+  rating: Joi.number().min(1).max(5).when('type', {
+    is: 'rating',
+    then: Joi.number().required(),
+    otherwise: Joi.optional()
   })
 });
 
 // Query validation schemas for user interactions
 export const getUserInteractionsSchema = Joi.object({
-  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save').optional()
+  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save', 'rating').optional()
 });
 
 // Parameter validation schemas
@@ -40,7 +45,7 @@ export const userIdParamSchema = Joi.object({
 
 // Query validation schemas
 export const interactionTypeQuerySchema = Joi.object({
-  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save')
+  type: Joi.string().valid('view', 'like', 'share', 'comment', 'save', 'rating')
 });
 
 export const filterContentSchema = Joi.object({
